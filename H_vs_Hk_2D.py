@@ -197,21 +197,6 @@ H_r = T @ Hk @ Tdag  # use underscore _r or _k to indicate calculation by F.T.
 H_k = Tdag @ H @ T
 
 
-
-# print(np.linalg.norm(Tdag@U - Uk)) # this not being zero is a problem!!!
-# print(np.linalg.norm(Udag@T - Ukdag))
-
-
-# for i in range(2*N):
-#     for j in range(2*N):
-#         if abs(H_k[i,j]) < 1e-12:
-#             H_k[i,j] = 0
-            
-# for i in range(2*N):
-#     for j in range(2*N):
-#         if abs(Hk[i,j]) < 1e-12:
-#             Hk[i,j] = 0
-
 H_k = np.around(H_k, 7)
 Hk = np.around(Hk, 7)
 
@@ -222,6 +207,18 @@ print('norm(Hk- Tdag H T): \t ' ,np.linalg.norm(Hk-H_k))
 
 
 (w,U) = np.linalg.eigh(H)
+
+
+
+
+
+
+
+
+
+
+
+
 # print(w)
 
 
