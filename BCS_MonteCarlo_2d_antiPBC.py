@@ -6,7 +6,7 @@ Created on Fri Jul 28 15:01:27 2023
 """
 import numpy as np 
 import cmath
-import numba
+# import numba
 import time
 from matplotlib import pyplot as pl
 from numpy import sin, cos, pi, linalg, sqrt
@@ -81,30 +81,7 @@ def get_nn1_array(L): # first nn array
             nn[i,j] = sites[neighbors[j]]
     return nn # NN: x, y, -x, -y
 
-def get_H1(N, t, Delta, nn): # nn pairing wavefunction 
-    H = np.zeros(shape=(2*N,2*N))
-    for i in range(N):
-        H[i,nn[i,0]] = -t 
-        H[i,nn[i,1]] = -t
-        H[i,nn[i,2]] = -t 
-        H[i,nn[i,3]] = -t
-        H[i+N,nn[i,0]+N] = t
-        H[i+N, nn[i,1]+N] = t
-        H[i+N,nn[i,2]+N] = t
-        H[i+N, nn[i,3]+N] = t
-        
-        H[i,nn[i,0]+N] = Delta
-        H[nn[i,0]+N,i] = Delta
-        
-        H[i,nn[i,1]+N] = -Delta # minus sign for y
-        H[nn[i,1]+N,i] = -Delta
-        
-        H[i,nn[i,2]+N] = Delta
-        H[nn[i,2]+N,i] = Delta
-        
-        H[i,nn[i,3]+N] = -Delta # minus sign for y gives delta(k) = delta(coskx - cosky)
-        H[nn[i,3]+N,i] = -Delta
-    return H
+
 
 aPBC = 1
 
@@ -160,65 +137,34 @@ def get_coeff2(U,state):
             A[j+Ne,i] = U[up[j]+N,i]
     return np.linalg.det(A)
 
-class Direction:
-    RIGHT, TOP, LEFT, BOTTOM = range(4)
-    
-def lattice(N):
-    nn = np.zeros(shape=(N,4), dtype=np.int16)
 
-    if(N == 8):
-        nn[0,:]=([4,2,6,7])
-        nn[1,:]=([2,4,7,6])
-        nn[2,:]=([3,5,1,0])
-        nn[3,:]=([7,6,2,4])
-        nn[4,:]=([5,3,0,1])
-        nn[5,:]=([6,7,4,2])
-        nn[6,:]=([0,1,5,3])
-        nn[7,:]=([1,0,3,5])
-        
-    if(N == 10):
-        nn[0,:]=([1,2,4,9])
-        nn[1,:]=([8,3,0,5])
-        nn[2,:]=([3,5,7,0])
-        nn[3,:]=([4,6,2,1])
-        nn[4,:]=([0,7,3,8])
-        nn[5,:]=([6,1,9,2])
-        nn[6,:]=([7,8,5,3])
-        nn[7,:]=([2,9,6,4])
-        nn[8,:]=([9,4,1,6])
-        nn[9,:]=([5,0,8,7])
-        
-    if(N == 4 or N == 16):
-        n = 0
-        L = int(np.sqrt(N))
-        for iy in range(L):
-            for ix in range(L):
 
-                nn[n,Direction.LEFT] = n-1
-                nn[n,Direction.RIGHT] = n+1
-                nn[n,Direction.TOP] = n+L
-                nn[n,Direction.BOTTOM] = n-L
-                if(ix == 0):
-                    nn[n,Direction.LEFT] = n+L-1
-                if(ix == L-1):
-                    nn[n,Direction.RIGHT] = n-(L-1)
-                if(iy == 0):
-                    nn[n, Direction.BOTTOM] = n+(L-1)*L
-                if(iy == L-1):
-                    nn[n, Direction.TOP] = n-(L-1)*L
-#                print(n,ix,iy,nn[n,0],nn[n,1])
-                n += 1
-        
-    return nn
+def make_ising_state2D(L): # function to make an Ising state of size L 
+    N = L**2
+    state = []
+    sgn = 1
+    for i in range(N):
+        if i%L ==0:
+            sgn *= -1
+        state.append(1*sgn)
+        sgn *= -1
+    return np.asarray(state)*0.5 # returns as [0.5, -0.5, ...]
+
 
 J1 = 1
 nn = get_nn1_array(L)
-# nn = lattice(N)
+
 
 H = get_H1a(N, t, Delta, nn)
 w, U = np.linalg.eigh(H)
 
 
+x = make_ising_state2D(L)
+print(get_coeff2(U,-x))
+
+
+x = get_random_state(L)
+print(get_coeff2(U,x))
 
 def _psi(state):
     #state = state - 0.5*np.ones(len(state))
@@ -322,10 +268,10 @@ t0 = time.time()
 
 
 
-E, sig = metro(L, U, Delta, nn, plot=True, Nsample=200,Nskip=3)
+# E, sig = metro(L, U, Delta, nn, plot=True, Nsample=200,Nskip=3)
 
-t1 = time.time()
-print("Elapsed time: %.2f sec" % (t1 - t0))
+# t1 = time.time()
+# print("Elapsed time: %.2f sec" % (t1 - t0))
 
 
 

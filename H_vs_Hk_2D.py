@@ -1,6 +1,5 @@
 import numpy as np 
 import cmath
-import numba
 import time
 from matplotlib import pyplot as pl
 import matplotlib.patches as patches
@@ -88,6 +87,8 @@ nn = get_nn1_array(L)
 H = get_H1a(N,t,Delta,nn)
 
 (w,U) = np.linalg.eigh(H)
+
+#H(r) = cdag H c = cdag (U D Udag) c
 ########################################################################################
 
 def get_klist(L):
@@ -161,7 +162,7 @@ Dr = Udag@H@U
 Dk = Ukdag@Hk@Uk
 
 
-print(np.linalg.norm(Dk-Dr))
+# print(np.linalg.norm(Dk-Dr))
 
 
 '''Let us now make a matrix T which transform k-space creation basis into real
@@ -181,14 +182,13 @@ for i in range(N): # rows are determined by position vectors
        
     
 Tdag = np.conj(np.transpose(T))
-# Tinv = np.linalg.inv(T)
-Id = Tdag@T
+# Id = Tdag@T
 
 
 ' Check that Hr = T Hk Tdag'
 H_r = T @ Hk @ Tdag  # use underscore _r or _k to indicate calculation by F.T.
 
-print(np.linalg.norm(H-H_r))
+# print(np.linalg.norm(H-H_r))
 
 'YES! The linear transfo T is indeed working!!!'
 
@@ -196,31 +196,81 @@ print(np.linalg.norm(H-H_r))
 
 H_k = Tdag @ H @ T
 
-print(np.linalg.norm(Hk-H_k))
+
 
 # print(np.linalg.norm(Tdag@U - Uk)) # this not being zero is a problem!!!
 # print(np.linalg.norm(Udag@T - Ukdag))
 
 
-for i in range(2*N):
-    for j in range(2*N):
-        if abs(H_k[i,j]) < 1e-12:
-            H_k[i,j] = 0
+# for i in range(2*N):
+#     for j in range(2*N):
+#         if abs(H_k[i,j]) < 1e-12:
+#             H_k[i,j] = 0
             
-for i in range(2*N):
-    for j in range(2*N):
-        if abs(Hk[i,j]) < 1e-12:
-            Hk[i,j] = 0
+# for i in range(2*N):
+#     for j in range(2*N):
+#         if abs(Hk[i,j]) < 1e-12:
+#             Hk[i,j] = 0
 
+H_k = np.around(H_k, 7)
+Hk = np.around(Hk, 7)
 
 (wk,Uk) = np.linalg.eigh(Hk)
-(w_k, U_k) = np.linalg.eigh(H_k)
+# (w_k, U_k) = np.linalg.eigh(H_k)
+
+print('norm(Hk- Tdag H T): \t ' ,np.linalg.norm(Hk-H_k))
+
+
+(w,U) = np.linalg.eigh(H)
+# print(w)
 
 
 
-print()
-print(np.linalg.norm(Uk-U_k))
-print()
+# U_k = Tdag@U
+
+# Uk = np.around(Uk,7)
+# U_k = np.around(U_k, 7)
+
+# # print(np.linalg.norm(Uk-U_k))
+# print(np.linalg.det(Uk))
+# print(np.linalg.det(U_k))
+
+# # U_r = np.around(T@Uk, 7)
+# U_r = T@Uk
+
+
+# D_r = np.conj(U_r.T) @ H @ U_r
+# # D_r = np.around(D_r, 7)
+
+
+# H_r = U_r @ Dr @ np.conj(U_r.T) 
+# H_r = np.around(H_r, 7)
+
+# Diff = Hk - H_k
+
+# for i in range(2*N):
+#     for j in range(2*N):
+#         if abs(Diff[i,j]) < 1e-12:
+#             Diff[i,j] = 0
+            
+# for i in range(2*N):
+#     for j in range(2*N):
+#         if abs(Diff[i,j]) < 1e-12:
+#             Diff[i,j] = 0
+
+# Diff = np.around(Diff, 3)
+# print(np.linalg.det(Hk))
+# print(np.linalg.det(H_k))
+# print(np.linalg.det(H))
+# print(np.linalg.det(H)-np.linalg.det(Hk))
+# print(np.linalg.norm(Hk-H_k))
+# print()
+# print(np.linalg.norm(Uk-U_k))
+# Diff = Uk - U_k
+# print(np.linalg.det(Uk))
+# print(np.linalg.det(U_k))
+
+# print()
 
 
 
@@ -232,21 +282,24 @@ def get_E(k):
     Dk = get_Deltak(Delta, k)
     return np.sqrt(xik**2 + abs(Dk)**2)
 
-for k in kk:
-    print(get_E(k))
+# for k in kk:
+#     print(get_E(k))
 
-# def get_uk(k):
-#     xik = get_xik(k)
-#     Ek = get_E(k)
-#     return np.sqrt(1/2*(1+xik/Ek))
-#     # return np.sqrt(1/2*(1+xik/Ek))*exp(-1j*phi/2)
+def get_uk(k):
+    xik = get_xik(k)
+    Ek = get_E(k)
+    return np.sqrt(1/2*(1+xik/Ek))
+    # return np.sqrt(1/2*(1+xik/Ek))*exp(-1j*phi/2)
 
-# def get_vk(k):
-#     xik = get_xik(k)
-#     Ek = get_E(k)
-#     return np.sqrt(1/2*(1-xik/Ek))
-#     # return np.sqrt(1/2*(1-xik/Ek))*exp(1j*phi/2)
-
+def get_vk(k):
+    xik = get_xik(k)
+    Ek = get_E(k)
+    return np.sqrt(1/2*(1-xik/Ek))
+    # return np.sqrt(1/2*(1-xik/Ek))*exp(1j*phi/2)
+    
+if 0:
+    for k in kk:
+        print('uk = %.5f \t vk = %.5f'%(get_uk(k),get_vk(k)))
 
 # Uk1dag = np.zeros((2*N,2*N),dtype=complex)
 # for i in range(N):

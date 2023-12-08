@@ -17,7 +17,7 @@ for n in range(int(-L/2), int(L/2)):
     for m in range(int(-L/2), int(L/2)):
         k_vec = 2*pi/L*np.asarray([n,m])
         klist.append(k_vec)
-if 0:    
+if 1:    
     rect = patches.Rectangle((-1,-1), 
                              2, 2, color='r')
     
